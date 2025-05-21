@@ -1,0 +1,143 @@
+openapi: 3.0.3
+info:
+  title: FastAPI MCP Template
+  description: "FastAPIとModel Context Protocol (MCP)を使用したAPIテンプレート"
+  version: 0.1.0
+paths:
+  /api/examples/:
+    get:
+      tags:
+      - examples
+      summary: Get Examples
+      description: "サンプル一覧を取得するエンドポイント"
+      operationId: get_examples
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    name:
+                      type: string
+                    description:
+                      type: string
+                type: array
+                title: Response Get Examples
+        '404':
+          description: Not found
+  /api/examples/{example_id}:
+    get:
+      tags:
+      - examples
+      summary: Get Example
+      description: "サンプル情報を取得するエンドポイント"
+      operationId: get_example
+      parameters:
+      - name: example_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Example Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+                  description:
+                    type: string
+                title: Response Get Example
+        '404':
+          description: Not found
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /hello:
+    get:
+      tags:
+      - root
+      summary: Hello World
+      description: "Hello Worldエンドポイント"
+      operationId: hello_world
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                title: Response Hello World
+  /:
+    get:
+      tags:
+      - root
+      summary: Root
+      description: "ルートエンドポイント"
+      operationId: root
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  docs:
+                    type: string
+                  mcp:
+                    type: string
+                  hello:
+                    type: string
+                title: Response Root
+components:
+  schemas:
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError

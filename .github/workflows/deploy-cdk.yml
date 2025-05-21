@@ -1,0 +1,72 @@
+name: CDK Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'dev'
+      AWS_ACCESS_KEY_ID:
+        description: 'AWS Access Key ID'
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        description: 'AWS Secret Access Key'
+        required: true
+      AWS_SESSION_TOKEN:
+        description: 'AWS Session Token (if using temporary credentials)'
+        required: false
+
+jobs:
+  cdk-deploy:
+    name: CDK Deployment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ github.event.inputs.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ github.event.inputs.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ github.event.inputs.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
+
+      - name: Install CDK dependencies
+        working-directory: cdk
+        run: npm ci
+
+      - name: Build CDK TypeScript code
+        working-directory: cdk
+        run: npm run build
+
+      - name: Clear CDK cache directory
+        working-directory: cdk
+        run: rm -rf cdk.out
+
+      - name: Install AWS CDK CLI
+        run: npm install -g aws-cdk
+
+      - name: Set AWS Account and Region env vars for CDK
+        run: |
+          echo "CDK_DEFAULT_ACCOUNT=$(aws sts get-caller-identity --query Account --output text)" >> $GITHUB_ENV
+          echo "CDK_DEFAULT_REGION=${{ env.AWS_REGION }}" >> $GITHUB_ENV
+        env:
+          AWS_REGION: us-east-1 # Ensure this matches the region used in configure-aws-credentials
+
+      - name: CDK Bootstrap (ignore if already bootstrapped)
+        working-directory: cdk
+        run: cdk bootstrap --require-approval never || true
+
+      - name: CDK Deploy
+        working-directory: cdk
+        run: |
+          cdk deploy --all \
+            --require-approval never \
+            --context environment=${{ github.event.inputs.environment }}
