@@ -9,7 +9,7 @@ from pathlib import Path
 
 def main():
     """開発環境をセットアップします"""
-    print("BacklogMCP 開発環境セットアップをPoetryで開始します...")
+    print("Poetryで開発環境セットアップを開始します...")
     # プロジェクトルートディレクトリを取得
     root_dir = Path(__file__).parent.parent.absolute()
     os.chdir(root_dir)

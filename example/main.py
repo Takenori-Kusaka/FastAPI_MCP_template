@@ -1,27 +1,20 @@
 """
-Backlog API サンプルアプリケーション
+FastAPI MCP サンプルアプリケーション
 
-このサンプルアプリケーションは、BacklogMCPプロジェクトのAPIを使用して
-Backlogの課題を操作する方法を示します。
+このサンプルアプリケーションは、FastAPI MCPテンプレートを使用して
+シンプルなAPIを実装する方法を示します。
 """
 import os
-import sys
 import uvicorn
-from fastapi import FastAPI, HTTPException, Depends, Query
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 
-# プロジェクトのルートディレクトリをパスに追加
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-# BacklogMCPのクライアントをインポート
-from app.infrastructure.backlog.backlog_client import BacklogClient
-
 app = FastAPI(
-    title="Backlog API サンプルアプリケーション",
-    description="BacklogMCPプロジェクトを使用したBacklog API操作のサンプル",
+    title="FastAPI MCP サンプルアプリケーション",
+    description="FastAPI MCPテンプレートを使用したシンプルなAPIサンプル",
     version="1.0.0"
 )
 
@@ -34,47 +27,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 環境変数からBacklog APIの設定を取得
-BACKLOG_API_KEY = os.getenv("BACKLOG_API_KEY", "")
-BACKLOG_SPACE = os.getenv("BACKLOG_SPACE", "")
-BACKLOG_PROJECT = os.getenv("BACKLOG_PROJECT", "")
-
-# BacklogClientのインスタンスを取得する関数
-def get_backlog_client():
-    if not BACKLOG_API_KEY or not BACKLOG_SPACE:
-        raise HTTPException(
-            status_code=500,
-            detail="Backlog API設定が不足しています。BACKLOG_API_KEYとBACKLOG_SPACEを設定してください。"
-        )
-    return BacklogClient(api_key=BACKLOG_API_KEY, space=BACKLOG_SPACE)
+# サンプルデータ
+EXAMPLES = [
+    {"id": 1, "name": "Example 1", "description": "This is example 1"},
+    {"id": 2, "name": "Example 2", "description": "This is example 2"},
+    {"id": 3, "name": "Example 3", "description": "This is example 3"},
+]
 
 # モデル定義
-class IssueCreate(BaseModel):
-    project_key: str
-    summary: str
+class ExampleCreate(BaseModel):
+    name: str
     description: Optional[str] = None
-    issue_type_name: Optional[str] = None
-    priority_name: Optional[str] = None
-    assignee_name: Optional[str] = None
-    status_name: Optional[str] = None
-    category_name: Optional[List[str]] = None
-    milestone_name: Optional[List[str]] = None
-    version_name: Optional[List[str]] = None
-    start_date: Optional[str] = None
-    due_date: Optional[str] = None
 
-class IssueUpdate(BaseModel):
-    summary: Optional[str] = None
+class ExampleUpdate(BaseModel):
+    name: Optional[str] = None
     description: Optional[str] = None
-    issue_type_name: Optional[str] = None
-    priority_name: Optional[str] = None
-    assignee_name: Optional[str] = None
-    status_name: Optional[str] = None
-    category_name: Optional[List[str]] = None
-    milestone_name: Optional[List[str]] = None
-    version_name: Optional[List[str]] = None
-    start_date: Optional[str] = None
-    due_date: Optional[str] = None
 
 class CommentCreate(BaseModel):
     content: str
@@ -83,169 +50,122 @@ class CommentCreate(BaseModel):
 @app.get("/")
 def read_root():
     return {
-        "message": "Backlog API サンプルアプリケーション",
+        "message": "FastAPI MCP サンプルアプリケーション",
         "endpoints": [
-            {"path": "/projects", "description": "プロジェクト一覧を取得"},
-            {"path": "/projects/{project_key}", "description": "プロジェクト詳細を取得"},
-            {"path": "/issues", "description": "課題一覧を取得"},
-            {"path": "/issues/{issue_id_or_key}", "description": "課題詳細を取得"},
-            {"path": "/issues", "method": "POST", "description": "課題を作成"},
-            {"path": "/issues/{issue_id_or_key}", "method": "PUT", "description": "課題を更新"},
-            {"path": "/issues/{issue_id_or_key}/comments", "method": "POST", "description": "コメントを追加"},
-            {"path": "/users", "description": "ユーザー一覧を取得"},
-            {"path": "/priorities", "description": "優先度一覧を取得"},
-            {"path": "/projects/{project_key}/statuses", "description": "ステータス一覧を取得"},
-            {"path": "/projects/{project_key}/categories", "description": "カテゴリー一覧を取得"},
-            {"path": "/projects/{project_key}/milestones", "description": "マイルストーン一覧を取得"},
-            {"path": "/projects/{project_key}/versions", "description": "バージョン一覧を取得"},
+            {"path": "/api/examples", "description": "サンプル一覧を取得"},
+            {"path": "/api/examples/{example_id}", "description": "サンプル詳細を取得"},
+            {"path": "/api/examples", "method": "POST", "description": "サンプルを作成"},
+            {"path": "/api/examples/{example_id}", "method": "PUT", "description": "サンプルを更新"},
+            {"path": "/api/examples/{example_id}", "method": "DELETE", "description": "サンプルを削除"},
+            {"path": "/api/examples/{example_id}/comments", "method": "POST", "description": "コメントを追加"},
+            {"path": "/api/examples/{example_id}/comments", "description": "コメント一覧を取得"},
         ]
     }
 
-# プロジェクト関連のエンドポイント
-@app.get("/projects")
-def get_projects(client: BacklogClient = Depends(get_backlog_client)):
-    """プロジェクト一覧を取得"""
-    return client.get_projects()
+# サンプルデータ関連のエンドポイント
+@app.get("/api/examples")
+def get_examples():
+    """サンプル一覧を取得"""
+    return EXAMPLES
 
-@app.get("/projects/{project_key}")
-def get_project(project_key: str, client: BacklogClient = Depends(get_backlog_client)):
-    """プロジェクト詳細を取得"""
-    project = client.get_project(project_key)
-    if not project:
-        raise HTTPException(status_code=404, detail=f"プロジェクト '{project_key}' が見つかりません")
-    return project
+@app.get("/api/examples/{example_id}")
+def get_example(example_id: int):
+    """サンプル詳細を取得"""
+    for example in EXAMPLES:
+        if example["id"] == example_id:
+            return example
+    raise HTTPException(status_code=404, detail=f"サンプルID {example_id} が見つかりません")
 
-# 課題関連のエンドポイント
-@app.get("/issues")
-def get_issues(
-    project_id: Optional[int] = None,
-    status_id: Optional[List[int]] = Query(None),
-    assignee_id: Optional[int] = None,
-    keyword: Optional[str] = None,
-    count: int = 20,
-    client: BacklogClient = Depends(get_backlog_client)
-):
-    """課題一覧を取得"""
-    return client.get_issues(
-        project_id=project_id,
-        status_id=status_id,
-        assignee_id=assignee_id,
-        keyword=keyword,
-        count=count
-    )
-
-@app.get("/issues/{issue_id_or_key}")
-def get_issue(issue_id_or_key: str, client: BacklogClient = Depends(get_backlog_client)):
-    """課題詳細を取得"""
-    issue = client.get_issue(issue_id_or_key)
-    if not issue:
-        raise HTTPException(status_code=404, detail=f"課題 '{issue_id_or_key}' が見つかりません")
-    return issue
-
-@app.post("/issues", status_code=201)
-def create_issue(issue: IssueCreate, client: BacklogClient = Depends(get_backlog_client)):
-    """課題を作成（名前ベースのパラメータを使用）"""
-    result = client.create_issue(
-        project_key=issue.project_key,
-        summary=issue.summary,
-        description=issue.description,
-        issue_type_name=issue.issue_type_name,
-        priority_name=issue.priority_name,
-        assignee_name=issue.assignee_name,
-        category_name=issue.category_name,
-        milestone_name=issue.milestone_name,
-        version_name=issue.version_name,
-        start_date=issue.start_date,
-        due_date=issue.due_date
-    )
+@app.post("/api/examples", status_code=201)
+def create_example(example: ExampleCreate):
+    """サンプルを作成"""
+    # 新しいIDを生成（実際のアプリケーションではデータベースで自動生成される）
+    new_id = max([example["id"] for example in EXAMPLES]) + 1 if EXAMPLES else 1
     
-    if not result:
-        raise HTTPException(status_code=500, detail="課題の作成に失敗しました")
-    return result
-
-@app.put("/issues/{issue_id_or_key}")
-def update_issue(
-    issue_id_or_key: str,
-    issue: IssueUpdate,
-    client: BacklogClient = Depends(get_backlog_client)
-):
-    """課題を更新（名前ベースのパラメータを使用）"""
-    result = client.update_issue(
-        issue_id_or_key=issue_id_or_key,
-        summary=issue.summary,
-        description=issue.description,
-        status_name=issue.status_name,
-        priority_name=issue.priority_name,
-        assignee_name=issue.assignee_name,
-        category_name=issue.category_name,
-        milestone_name=issue.milestone_name,
-        version_name=issue.version_name,
-        start_date=issue.start_date,
-        due_date=issue.due_date
-    )
+    new_example = {
+        "id": new_id,
+        "name": example.name,
+        "description": example.description or f"This is example {new_id}"
+    }
     
-    if not result:
-        raise HTTPException(status_code=500, detail=f"課題 '{issue_id_or_key}' の更新に失敗しました")
-    return result
-
-@app.post("/issues/{issue_id_or_key}/comments", status_code=201)
-def add_comment(
-    issue_id_or_key: str,
-    comment: CommentCreate,
-    client: BacklogClient = Depends(get_backlog_client)
-):
-    """課題にコメントを追加"""
-    result = client.add_comment(
-        issue_id_or_key=issue_id_or_key,
-        content=comment.content
-    )
+    # サンプルデータに追加（実際のアプリケーションではデータベースに保存）
+    EXAMPLES.append(new_example)
     
-    if not result:
-        raise HTTPException(status_code=500, detail=f"課題 '{issue_id_or_key}' へのコメント追加に失敗しました")
-    return result
+    return new_example
 
-@app.get("/issues/{issue_id_or_key}/comments")
-def get_comments(
-    issue_id_or_key: str,
-    count: int = 20,
-    client: BacklogClient = Depends(get_backlog_client)
-):
-    """課題のコメント一覧を取得"""
-    return client.get_issue_comments(
-        issue_id_or_key=issue_id_or_key,
-        count=count
-    )
+@app.put("/api/examples/{example_id}")
+def update_example(example_id: int, example: ExampleUpdate):
+    """サンプルを更新"""
+    for i, existing_example in enumerate(EXAMPLES):
+        if existing_example["id"] == example_id:
+            # 更新するフィールドのみ変更
+            if example.name is not None:
+                EXAMPLES[i]["name"] = example.name
+            if example.description is not None:
+                EXAMPLES[i]["description"] = example.description
+            return EXAMPLES[i]
+    
+    raise HTTPException(status_code=404, detail=f"サンプルID {example_id} が見つかりません")
 
-# マスターデータ取得用のエンドポイント
-@app.get("/users")
-def get_users(client: BacklogClient = Depends(get_backlog_client)):
-    """ユーザー一覧を取得"""
-    return client.get_users()
+@app.delete("/api/examples/{example_id}")
+def delete_example(example_id: int):
+    """サンプルを削除"""
+    for i, example in enumerate(EXAMPLES):
+        if example["id"] == example_id:
+            # サンプルデータから削除（実際のアプリケーションではデータベースから削除）
+            deleted = EXAMPLES.pop(i)
+            return {"message": f"サンプルID {example_id} を削除しました", "deleted": deleted}
+    
+    raise HTTPException(status_code=404, detail=f"サンプルID {example_id} が見つかりません")
 
-@app.get("/priorities")
-def get_priorities(client: BacklogClient = Depends(get_backlog_client)):
-    """優先度一覧を取得"""
-    return client.get_priorities()
+# コメント関連のエンドポイント（インメモリで実装）
+COMMENTS = {}  # example_id をキーとしたコメントのリスト
 
-@app.get("/projects/{project_key}/statuses")
-def get_statuses(project_key: str, client: BacklogClient = Depends(get_backlog_client)):
-    """ステータス一覧を取得"""
-    return client.get_statuses(project_key)
+@app.post("/api/examples/{example_id}/comments", status_code=201)
+def add_comment(example_id: int, comment: CommentCreate):
+    """サンプルにコメントを追加"""
+    # サンプルが存在するか確認
+    example_exists = False
+    for example in EXAMPLES:
+        if example["id"] == example_id:
+            example_exists = True
+            break
+    
+    if not example_exists:
+        raise HTTPException(status_code=404, detail=f"サンプルID {example_id} が見つかりません")
+    
+    # コメントを追加
+    if example_id not in COMMENTS:
+        COMMENTS[example_id] = []
+    
+    comment_id = len(COMMENTS[example_id]) + 1
+    timestamp = datetime.now().isoformat()
+    
+    new_comment = {
+        "id": comment_id,
+        "content": comment.content,
+        "created_at": timestamp
+    }
+    
+    COMMENTS[example_id].append(new_comment)
+    
+    return new_comment
 
-@app.get("/projects/{project_key}/categories")
-def get_categories(project_key: str, client: BacklogClient = Depends(get_backlog_client)):
-    """カテゴリー一覧を取得"""
-    return client.get_categories(project_key)
-
-@app.get("/projects/{project_key}/milestones")
-def get_milestones(project_key: str, client: BacklogClient = Depends(get_backlog_client)):
-    """マイルストーン一覧を取得"""
-    return client.get_milestones(project_key)
-
-@app.get("/projects/{project_key}/versions")
-def get_versions(project_key: str, client: BacklogClient = Depends(get_backlog_client)):
-    """バージョン一覧を取得"""
-    return client.get_versions(project_key)
+@app.get("/api/examples/{example_id}/comments")
+def get_comments(example_id: int):
+    """サンプルのコメント一覧を取得"""
+    # サンプルが存在するか確認
+    example_exists = False
+    for example in EXAMPLES:
+        if example["id"] == example_id:
+            example_exists = True
+            break
+    
+    if not example_exists:
+        raise HTTPException(status_code=404, detail=f"サンプルID {example_id} が見つかりません")
+    
+    # コメントを取得
+    return COMMENTS.get(example_id, [])
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8080, reload=True)

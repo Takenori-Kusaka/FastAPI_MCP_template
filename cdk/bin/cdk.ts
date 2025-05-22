@@ -17,7 +17,7 @@ import * as cdk from 'aws-cdk-lib';
 // --- ここまで最小構成のスタック定義（削除） ---
 
 // --- ここから元のコード（コメントアウト解除） ---
-import { BacklogMcpStack } from '../lib/backlog-mcp-stack';
+import { FastApiMcpStack } from '../lib/fastapi-mcp-stack';
 
 const app = new cdk.App();
 
@@ -36,13 +36,13 @@ const commonProps = {
 };
 
 // スタック名に環境名を含める
-const stackName = `BacklogMcpStack-${environment}`;
+const stackName = `FastApiMcpStack-${environment}`;
 
 // スタックの作成
-new BacklogMcpStack(app, stackName, commonProps);
+new FastApiMcpStack(app, stackName, commonProps);
 
 // タグの追加
 cdk.Tags.of(app).add('Environment', environment);
-cdk.Tags.of(app).add('Project', 'BacklogMCP');
+cdk.Tags.of(app).add('Project', 'FastApiMCP');
 cdk.Tags.of(app).add('ManagedBy', 'CDK');
 // --- ここまで元のコード（コメントアウト解除） ---

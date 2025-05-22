@@ -81,10 +81,10 @@ echo "CDKのキャッシュディレクトリをクリアしています..."
 rm -rf cdk.out
 
 # 特定スタックの詳細なシンセサイズログを取得
-echo "特定のスタック (BacklogMcpStack-dev) の詳細なシンセサイズログを取得しています..."
-# スタック名は環境に合わせて適宜変更してください (例: BacklogMcpStack-stg)
+echo "特定のスタック (FastApiMcpStack-dev) の詳細なシンセサイズログを取得しています..."
+# スタック名は環境に合わせて適宜変更してください (例: FastApiMcpStack-stg)
 # --context environment=dev は cdk.json の app コマンド経由で渡される想定だが、明示的に指定
-npx cdk synth "BacklogMcpStack-dev" --context environment=dev --verbose > cdk-synth-verbose-specific.log 2>&1
+npx cdk synth "FastApiMcpStack-dev" --context environment=dev --verbose > cdk-synth-verbose-specific.log 2>&1
 if [ $? -ne 0 ]; then
     echo "特定のスタックのシンセサイズに失敗しました。詳細は cdk-synth-verbose-specific.log を確認してください。"
     cat cdk-synth-verbose-specific.log
